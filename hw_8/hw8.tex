@@ -1,0 +1,293 @@
+\documentclass[12pt,a4paper,utf8]{ctexart}
+\usepackage{ctex,amsmath,amssymb,subfig,cite,graphicx,diagbox,fontspec,fancyhdr,geometry}
+\usepackage[ntheorem]{empheq}
+\usepackage{enumitem,fullpage,cleveref,cellspace,listings,color,framed}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{dkgreen}{rgb}{.068,.578,.068}
+\definecolor{dkpurple}{rgb}{.320,.064,.680}
+
+%set Fortran styles
+\lstset{
+    frameround=tftf,
+    language=Fortran,
+    keywords={SELECT,PROGRAM,PRINT,STOP,END,WRITE,INTEGER,REAL,COMPLEX,CHARACTER,LOGICAL,READ,FORMAT,IMPLICIT,PARAMETER,DATA,EQUIVALENCE,TYPE,PAUSE,CONTINUE,CYCLE,EXIT,IF,SELECT,DO,ALLOCATE,DEALLOCATE,WHERE,FORALL,SUBROUTIHNE,CALL,RETURN,FUNCTION,COMMON,BLOCK DATA,SAVE,INTERFACE,CONTAIN,MODULE,USE,PUBLIC,PRIVATE,ENTRY,OPEN,INQUIRE,CLOSE,NAMELIST,POINTER,NULLFY,REWIND,BACKSPACE,ENDFILE
+    },
+    basicstyle=\small\ttfamily,
+    numbers=left,
+    numberstyle=\small,
+    keywordstyle=\color{blue}\bfseries,
+    commentstyle=\color{dkgreen},
+    stringstyle=\color{dkpurple},
+    backgroundcolor=\color{white},
+    tabsize=2,
+    showspaces=false,
+    showstringspaces=false,
+    breaklines=true,
+    frame=trBL,
+}
+\CTEXsetup[format+={\raggedright}]{section}
+\setlength{\parindent}{2em}
+\geometry{
+    textwidth=138mm,
+    textheight=215mm,
+    left=27mm,
+    right=27mm,
+    top=25.4mm,
+    bottom=25.4mm,
+    headheight=2.17cm,
+    headsep=4mm,
+    footskip=12mm,
+    heightrounded,
+}
+\pagestyle{fancy}
+\lhead{\textsl{2021秋-计算物理A}}
+\chead{}
+\rhead{\textsl{PB19020634-于浩然}}
+\lfoot{}
+\cfoot{\thepage}
+\rfoot{}
+
+\begin{document}
+\begin{center}
+    {\LARGE\textbf{计算物理作业八}}\\
+    \textrm{于浩然}~~~~~~\textrm{PB19020634}~~~~~~\textrm{2021.10.20}
+\end{center}
+
+\section{作业题目}
+
+用Monte Carlo方法计算如下定积分，并讨论有效数字位数.
+\begin{equation}
+    \int _0 ^5 \textrm{d}x \sqrt{x+ 2 \sqrt{x}};
+\end{equation}
+\begin{equation}
+    \int _0 ^{7/10} \textrm{d}x \int _0 ^{4/7} \textrm{d}y \int _0 ^{9/10}
+    \textrm{d}z \int _0 ^2 \textrm{d} u \int _0 ^{13/11} \textrm{d} v (5 - x^2 +y^2 -
+    z^2 + u^3 - v^3)
+\end{equation}
+
+\section{算法简介}
+
+\subsection{平均值法计算一维积分}
+
+根据积分的平均值定理：
+\begin{equation}
+    \int _{a} ^{b} f(x) \textrm{d}x = (b - a)\langle f \rangle
+\end{equation}
+
+而平均值又可从下式得到：
+\begin{equation}
+    \langle f \rangle \approxeq \frac{1}{N} \sum_{i=1}^{N}f(x_i)
+\end{equation}
+
+故有
+\begin{equation}
+    \int _{a} ^{b} f(x)	\textrm{d}x \approxeq \frac{(b-a)}{N} \sum_{i=1}^{N}
+    f(x_i)
+\end{equation}
+
+此即Monte Carlo方法计算一维定积分.
+
+\subsection{多重定积分}
+
+Monte Carlo方法真正的威力在于应用于多重积分.将(5)式推广为：
+\begin{equation}
+    \int _{a_1} ^{b_1} \textrm{d} x_1	\int _{a_2} ^{b_2} \textrm{d}x_2	
+    \cdots \int _{a_n} ^{b_n} \textrm{d}x_n	f(x_1,x_2,\cdots,x_n)
+    = \frac{1}{N}\left[ \prod_{j=1}^{n} (b_j - a_j)\right]
+    \sum_{i=1}^{N}f(x_1,x_2,\cdots,x_n)
+\end{equation}
+其中对每个坐标的抽样值在相应区间范围内均匀抽取.
+
+\section{编程实现}
+
+用FORTRAN90进行编程，将积分程序写在一个模块
+\texttt{integrate}中.其中包含：
+\begin{itemize}
+    \item \texttt{f(x)} 、\texttt{g(x, y, z, u, v)}
+        
+        分别用于表示两个被积函数.
+    \item \texttt{SUBROUTIHNE integrate\_1(n)}
+
+        此子程序为1维Monte Carlo积分计算程序.在这里我们调用16807生成器程序 
+        \texttt{Schrage(P, z0, filename)}，生成$10^n$个均匀分布随机数.
+        \texttt{ave}为计算前
+        \texttt{i}个数的均值，每当增加一个数时更新均值如下：
+        \begin{equation}
+            \bar{x}_N = \bar{x}_{N-1} + \frac{x_N - \bar{x}_{N-1}}{N}
+        \end{equation}
+        其中$\bar{x}_N = \frac{1}{N}
+        \sum_{i=1}^{N}x_i$.在程序中即23行所示，我们采用这种方法以避免求和时
+        发生数据溢出.
+    \item \texttt{SUBROUTIHNE integrate\_1(n)}
+        此子程序思路与前面基本相同，但使用了$10^n \times 5$维的数组，
+        5列分别用于存放
+        \texttt{x,y,z,u,v}，具体实现见38-42行的循环结构.数组的5个维度出自同一个随机数序列，我们
+        曾在第一道作业题中论证过这些子序列可认为是互不相关的，故
+        这样做与分别产生5个随机数序列无异.
+\begin{framed}
+\begin{lstlisting}[language=Fortran]
+MODULE integrate !聚合两个积分程序的模块
+    IMPLICIT NONE
+    CONTAINS
+        FUNCTION f(x) !定义被积函数
+            REAL(KIND=8) :: f, x
+            f = SQRT(x + 2 * SQRT(x))
+        END FUNCTION f
+        FUNCTION g(x, y, z, u, v)
+            REAL(KIND=8) :: g, x, y, z, u, v
+            g = 5 - x**2 + y**2 - z**2 + u**3 - v**3
+        END FUNCTION g
+        
+        SUBROUTINE integrate_1(n) !一维Monte Carlo积分子程序
+            REAL(KIND=8) ,DIMENSION(10**n):: x
+            REAL(KIND=8) :: ave, res
+            INTEGER(KIND=4) :: i, n
+            CALL Schrage(n, 54123654, 'rand.dat') !用16807产生器产生一定数目的均匀随机数
+            OPEN (1, file='rand.dat')
+            READ (1, *) x
+            CLOSE (1)
+            ave = f(5 * x(1)) !将0到1间随机数x转换为0到5间均匀分布随机数
+            DO i = 2, 10**n
+                ave = ave + (f(5 * x(i)) - ave) / i !为防止溢出调整了平均值求法
+            END DO
+            res = 5 * ave !积分计算结果
+            print *, '1d', res
+        END SUBROUTINE integrate_1
+
+        SUBROUTINE integrate_2(n) !五维Monte Carlo积分子程序
+            REAL(KIND=8) ,DIMENSION(10**(n + 1)) :: dat
+            REAL(KIND=8) ,DIMENSION(10**n, 5) :: x
+            REAL(KIND=8) :: ave, res
+            INTEGER(KIND=4) :: i, j, n
+            CALL Schrage(n + 1, 8455214, 'rand.dat') !用16807产生器产生一定数目的均匀随机数
+            OPEN (1, file='rand.dat')
+            READ (1, *) dat
+            CLOSE (1)
+            DO i = 1, 10**n
+                DO j = 1, 5
+                    x(i, j) = dat(5 * i + j) !每隔5个数从前面产生的随机数序列中取一个值，对应5个维度
+                END DO
+            END DO
+            ave = g((7.0/10) * x(1, 1), (4.0/7) * x(1, 2),&
+                  (9.0/10) * x(1, 3), 2.0 * x(1, 4),&
+                  (13/11) * x(1, 5))
+            !将0到1间均匀随机数变换为0到任意值之间均匀随机数
+            DO i = 2, 10**n
+                ave = ave + (g((7.0/10) * x(i, 1),&
+                      (4.0/7) * x(i, 2),(9.0/10) * x(i, 3),&
+                      2.0 * x(i,4),(13/11) * x(i,5))-ave)/i
+            END DO
+            res = (7.0/10) * (4.0/7) * (9.0/10) * 2 * (13.0/11) * ave
+            print *, '5d', res
+        END SUBROUTINE integrate_2
+END MODULE integrate
+\end{lstlisting}
+\end{framed}
+
+    \item \texttt{SUBROUTINE Schrage(P, z0, filename)}
+
+        16807生成器子程序.(这是一个外部过程，调用了之前所写的子程序)
+
+\begin{framed}
+\begin{lstlisting}[language=Fortran]
+SUBROUTINE Schrage(P, z0, filename) !Schrage随机数生成器子程序
+    IMPLICIT NONE
+    INTEGER :: N = 1, P
+    INTEGER :: m = 2147483647, a = 16807, q = 127773, r = 2836, In(10**P), z0
+    REAL(KIND=8) :: z(10**P)
+    CHARACTER(LEN=8) :: filename
+    In(1) = z0 !将传入值z0作为种子
+    z(1) = REAL(In(1))/m
+    DO N = 1, 10**P - 1
+        In(N + 1) = a*MOD(In(N), q) - r*INT(In(N)/q)
+        IF (In(N + 1) < 0) THEN !若值小于零，按Schrage方法加m
+            In(N + 1) = In(N + 1) + m
+        END IF
+        z(N + 1) = REAL(In(N + 1))/m !得到第N+1个随机数
+    END DO
+    OPEN (1, file=trim(filename)) !每次运行子程序按照传入参数filename生成数据文件
+    DO N = 1, 10**P !将随机数按行存入文件
+        WRITE (1, *) z(N)
+    END DO
+    CLOSE (1)
+END SUBROUTINE Schrage
+\end{lstlisting}
+\end{framed}
+
+    
+\end{itemize}
+
+在主程序中，使用两个 \texttt{DO}循环结构，实现对不同抽样点数的两种积分.
+
+\begin{framed}
+\begin{lstlisting}[language=Fortran]
+PROGRAM MAIN
+    USE integrate
+    INTEGER(KIND=4) :: i
+    DO i = 2, 7
+        CALL integrate_1(i)
+    END DO
+    DO i = 2, 7
+        CALL integrate_2(i)
+    END DO
+END PROGRAM MAIN
+\end{lstlisting}
+\end{framed}
+
+\section{计算结果}
+
+\subsection{一重定积分}
+
+将一重定积分程序计算结果列表展示如下：
+
+\begin{table}[htb]
+\centering
+\begin{tabular}{|l|l|l|l|l|l|l|}
+\hline
+抽样点数$N$ & $10^2$   & $10^3$   & $10^4$   & $10^5$   & $10^6$   & $10^7$   \\ \hline
+积分值  & 10.95739 & 11.35194 & 11.32440 & 11.30942 & 11.32128 & 11.31761 \\ \hline
+\end{tabular}
+\caption{一重定积分计算结果}
+\end{table}
+
+在Wolfram
+Alpha中计算精确值为11.31796149(保留小数点后8位)，于是我们可讨论有效数字位数.
+\begin{itemize}
+    \item $N=10^2$时，只有1位有效数字；
+    \item $N=10^4$时，有2位有效数字；
+    \item $N=10^6$时，有3位有效数字；
+    \item $N=10^7$时，有4位有效数字.
+\end{itemize}
+
+从上面规律可以发现，要想提高1位数字精度，大概需要抽样数变为原来的100倍.
+
+\subsection{多重定积分}
+
+将五重定积分程序计算结果列表展示如下：
+
+\begin{table}[htb]
+\centering
+\begin{tabular}{|l|l|l|l|l|l|l|}
+\hline
+抽样点数 & $10^2$  & $10^3$  & $10^4$  & $10^5$  & $10^6$  & $10^7$  \\ \hline
+积分值  & 5.29003 & 5.51398 & 5.49307 & 5.46980 & 5.46718 & 5.46795 \\ \hline
+\end{tabular}
+\caption{五重定积分计算结果}
+\end{table}
+
+根据所得数据以及前一节中一重定积分有效数字位数的讨论，我们可以得到
+\begin{itemize}
+    \item $N=10^2$时，有1位有效数字；
+    \item $N=10^4$时，有2位有效数字；
+    \item $N=10^6$时，有3位有效数字；
+    \item ($N=10^8$时，有4位有效数字.)
+\end{itemize}
+
+这与Monte Carlo积分理论上的误差相吻合.
+
+\section{结论}
+
+本作业中我们用Monte
+Carlo方法计算了积分，显见要想使用MC方法达到较高的积分精度需要付出巨大的计算代价.
+但是对于高维积分，其他数值积分方法变得难以操作，MC方法便体现出了其优越性.
+\end{document}

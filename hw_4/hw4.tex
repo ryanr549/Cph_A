@@ -1,0 +1,246 @@
+\documentclass[12pt,a4paper,utf8]{ctexart}
+\usepackage{ctex,amsmath,amssymb,subfig,cite,graphicx,diagbox,fontspec,fancyhdr,geometry}
+\usepackage[ntheorem]{empheq}
+\usepackage{enumitem,fullpage,cleveref,cellspace,listings,color,framed}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{dkgreen}{rgb}{.068,.578,.068}
+\definecolor{dkpurple}{rgb}{.320,.064,.680}
+
+%set Fortran styles
+\lstset{
+    frameround=tftf,
+    language=Fortran,
+    keywords={SELECT,PROGRAM,PRINT,STOP,END,WRITE,INTEGER,REAL,COMPLEX,CHARACTER,LOGICAL,READ,FORMAT,IMPLICIT,PARAMETER,DATA,EQUIVALENCE,TYPE,PAUSE,CONTINUE,CYCLE,EXIT,IF,SELECT,DO,ALLOCATE,DEALLOCATE,WHERE,FORALL,SUBROUTIHNE,CALL,RETURN,FUNCTION,COMMON,BLOCK DATA,SAVE,INTERFACE,CONTAIN,MODULE,USE,PUBLIC,PRIVATE,ENTRY,OPEN,INQUIRE,CLOSE,NAMELIST,POINTER,NULLFY,REWIND,BACKSPACE,ENDFILE
+    },
+    basicstyle=\small\ttfamily,
+    numbers=left,
+    numberstyle=\small,
+    keywordstyle=\color{blue}\bfseries,
+    commentstyle=\color{dkgreen},
+    stringstyle=\color{dkpurple},
+    backgroundcolor=\color{white},
+    tabsize=2,
+    showspaces=false,
+    showstringspaces=false,
+    breaklines=true,
+    frame=trBL,
+}
+\CTEXsetup[format+={\raggedright}]{section}
+\setlength{\parindent}{2em}
+\geometry{
+    textwidth=138mm,
+    textheight=215mm,
+    left=27mm,
+    right=27mm,
+    top=25.4mm,
+    bottom=25.4mm,
+    headheight=2.17cm,
+    headsep=4mm,
+    footskip=12mm,
+    heightrounded,
+}
+\pagestyle{fancy}
+\lhead{\textsl{2021秋-计算物理A}}
+\chead{}
+\rhead{\textsl{PB19020634-于浩然}}
+\lfoot{}
+\cfoot{\thepage}
+\rfoot{}
+
+\begin{document}
+\begin{center}
+    {\LARGE\textbf{计算物理作业四}}\\
+    \textrm{于浩然}~~~~~~\textrm{PB19020634}~~~~~~\textrm{2021.10.17}
+\end{center}
+
+\section{作业题目}
+
+设pdf函数满足关系式：
+\begin{equation}
+    p'(x)=a \delta (x)+b \exp (-cx), \qquad x \in [-1,1]
+\end{equation}
+讨论该函数性质并给出抽样方法.
+
+\section{函数性质讨论}
+
+\subsection{函数形式的确定}
+
+pdf函数的导数中含有$\delta(x)$，故pdf函数在$x=0$处有阶跃.我们引进Heaviside阶梯函数：
+\begin{equation}
+    \Theta (s) = 
+    \begin{cases}
+        1,\quad s>0 \\
+        0,\quad s<0 
+    \end{cases}
+\end{equation}
+
+此函数具有如下性质：
+\begin{equation}
+    \frac{ \textrm{d}\Theta (s)}{ \textrm{d}s} = \delta (s)
+\end{equation}
+
+于是，我们不妨设$p'(x)$原函数的第一项为
+\begin{equation}
+    p_1(x) = a \Theta (x)
+\end{equation}
+
+对$p'(x)$的第二项求不定积分：
+\begin{equation}
+    \int b \exp(-cx) \textrm{d}x= - \frac{b}{c} e^{-cx} + C
+\end{equation}
+
+为了讨论方便，我们尽可能使$p(x)$的形式简单.不妨取$C=0$，得到pdf函数的第二项：
+\begin{equation}
+    p_2(x) = - \frac{b}{c} e^{-cx}
+\end{equation}
+
+至此我们已经得到了pdf函数的一个简单形式：
+\begin{eqnarray}
+    p(x) &=& p_1(x) + p_2(x) \nonumber \\
+         &=& a \Theta (x) - \frac{b}{c} e^{-cx} \nonumber \\
+         &=& 
+         \begin{cases}
+             a - \frac{b}{c} e^{-cx},\quad x \in [0,1] \\
+             - \frac{b}{c} e^{-cx},\qquad x \in [-1,0]
+         \end{cases}
+\end{eqnarray}
+
+\subsection{函数最大值的讨论}
+
+由于后面可能需要用到舍选抽样法，考虑其抽样效率，需要对pdf函数的最大值进行讨论.由于pdf函数不能为负，$a,b,c$参数将受到一定限制：
+\begin{equation}
+    \begin{cases}
+        a - \frac{b}{c}e^{-cx} > 0,\quad x \in [0,1] \\
+        - \frac{b}{c} e^{-cx} > 0,\qquad x \in [-1,0]
+    \end{cases}
+\end{equation}
+
+易得$-b/c > 0$.下面分类讨论：
+\begin{itemize}
+    \item $c > 0 \Rightarrow b < 0$
+
+        这时$e^{-cx}$为递减函数，在$-1$处取最大值$e^{c}$.这时函数的最大值仍决定于$a$的大小，为了进行讨论，我们将函数分为两段分别求最大值：
+        \begin{equation}
+            \begin{cases}
+                \max_{x \in [0,1]}p(x) = a - b/c \\
+                \max_{x \in [-1,0]}p(x) = - (b/c)e^{c}
+            \end{cases}
+        \end{equation}
+    \item $c < 0 \Rightarrow b > 0$
+
+        这时$e^{-cx}$为递增函数，在$1$处取最大值$e^{-c}$.有
+        \begin{equation}
+            a > \frac{b}{c}e^{-c} 
+        \end{equation}
+        $a$仍可能为负值，故我们考虑最大值时仍分段考虑：
+        \begin{equation}
+            \begin{cases}
+                \max _{x \in [0,1]}p(x) = a - (b/c)e^{-c} \\
+                \max _{x \in [-1,0]}p(x) = -b/c
+            \end{cases}
+        \end{equation}
+\end{itemize}
+
+\subsection{求反函数的可能性}
+
+若要使用直接抽样法，则须考虑pdf函数的累积函数是否容易求反函数.对我们给出的pdf函数形式(7)，求其累积函数：
+\begin{eqnarray}
+    \eta(x) &=& \int _{-1} ^{x} p(\tau) \textrm{d}\tau \nonumber \\
+           &=& 
+           \begin{cases}
+               (b/c^2)(e^{-cx}-e^c),~~~~~~~~~ x \in [-1,0] \\
+               (b/c^2)(e^{-cx}-e^c) + ax,~~ x \in [0,1] 
+           \end{cases} \nonumber \\
+           &=& (b/c^2)(e^{-cx}-e^c) + ax \Theta(x)
+\end{eqnarray}
+
+对于这样的累积函数，求反函数十分困难，即使分段后$[0,1]$上也不能解析求出$x(\eta)$，故我们在后面不考虑直接抽样法.
+\section{抽样方法}
+
+\subsection{抽样公式推导}
+
+在这里我们直接考虑 \textbf{阶段函数舍选法}.分别取$[0,1]$和$[-1,0]$上的最大值
+\begin{equation}
+    M_1 = a - \frac{b}{c}e^{|c|},\qquad M_2 = - \frac{b}{c}e^{|c|}
+\end{equation}
+
+设分段阶梯比较函数
+\begin{equation}
+    F(x) = 
+    \begin{cases}
+        M_1,\quad x \in [0,1] \\
+        M_2,\quad x \in [-1,0]
+    \end{cases}
+\end{equation}
+
+根据舍选法的一般形式：
+\begin{enumerate}
+    \item[(1)] 产生一对$[0,1]$区间中均匀分布的随机抽样值$(\xi_1,
+        \xi_2)$，可得抽样表示式：
+    \begin{equation}
+        \xi_1 = \int _a ^{\xi_x}F(x) \textrm{d}x\big / \int_{-1} ^1 F(x) \textrm{d}x,
+        \qquad \xi _y = \xi_2 F(\xi_x)
+    \end{equation}
+
+    分段表示如下：
+    \begin{equation}
+        \xi_1= \left\{  
+            \begin{aligned}
+                &\frac{(\xi_x + 1)M_2}{M_1 + M_2},\qquad \xi_x \in [-1,0] \\
+                &\frac{M_2 + \xi_x M_1}{M_1+M_2}, \qquad \xi_x \in [0,1]
+            \end{aligned}
+            \right .
+    \end{equation}
+    \begin{equation}
+        \xi_2= \left\{
+            \begin{aligned}
+                &\xi_y / M_2 , \qquad \xi_x \in [-1,0] \\   
+                &\xi_y / M_1 , \qquad \xi_x \in [0,1]
+            \end{aligned} \right.
+    \end{equation}
+
+\item[(2)] 判断条件 $\xi_y \leq p(\xi_x)$是否成立：
+
+    \begin{itemize}
+        \item $\xi_x \in [-1,0]$时
+            \begin{equation}
+                \xi_x = (1+ \frac{M_1}{M_2}) \xi_1 -1 < 0 \Rightarrow
+                \xi_1 < \frac{M_2}{M_1+M_2}
+            \end{equation}
+
+            判断条件为
+            \begin{equation}
+                M_2 \xi_2 < p((1+ \frac{M_1}{M_2})\xi_1 - 1) 
+            \end{equation}
+            时，取 $\xi_x$.
+
+        \item $\xi _x \in [0,1]$时
+            \begin{equation}
+                \xi_x = \frac{(M_1+M_2)\xi_1 - M_2}{M_1} > 0 \Rightarrow \xi_1 >
+                \frac{M_2}{M_1+M_2}
+            \end{equation}
+
+            判断条件为
+            \begin{equation}
+                M_1 \xi_2 < p\left( (1+ \frac{M_2}{M_1})\xi_1 - \frac{M_2}{M_1} \right)
+            \end{equation}
+            时，取$\xi_x$.
+    \end{itemize}
+            若判断条件不成立，则舍.
+\end{enumerate}
+
+\subsection{抽样效率讨论}
+
+对于舍选法抽样，其抽样效率(即有效选取的点数占比)即为$p$与$F$的面积比.代入本题目中参数可得抽样效率：
+\begin{equation}
+    \frac{\int _{-1}^{1}p(x) \textrm{d}x}{\int _{-1} ^1 F(x) \textrm{d}x} 
+    = \frac{a + \int _{-1} ^1 (- \frac{b}{c})e^{-cx}}{M_1+M_2}
+    = \frac{a+b/c^2(e^c-e^{-c})}{a - 2(b/c) e^{|c|}}
+\end{equation}
+\section{结论}
+
+本题中我们讨论了带有阶跃的pdf函数的性质与抽样方法.对于比较复杂的情况，直接抽样法中的反函数通常很难求解，这更体现了舍选抽样法“万金油”的优越性.对于简单分布(密度分布函数$p(x)$定义在有限区域且有界)，可通过直接采取分段式常数函数作为比较函数的方式，便捷地得到抽样效率可观的抽样方法.
+
+本题中变参数过多，可以说是$a,b,c$的取值决定了我们的抽样方法好坏，为防止得到片面性结论.决定不自行确定数值来进行实验.
+\color{red} 注意归一性没有讨论到.
+\end{document}

@@ -1,0 +1,140 @@
+\documentclass[12pt,a4paper,utf8]{ctexart}
+\usepackage{ctex,amsmath,amssymb,subfig,cite,graphicx,diagbox,fontspec,fancyhdr,geometry}
+\usepackage[ntheorem]{empheq}
+\usepackage{enumitem,fullpage,cleveref,cellspace,listings,color,framed}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{dkgreen}{rgb}{.068,.578,.068}
+\definecolor{dkpurple}{rgb}{.320,.064,.680}
+
+%set Fortran styles
+\lstset{
+    frameround=tftf,
+    language=Fortran,
+    keywords={SELECT,PROGRAM,PRINT,STOP,END,WRITE,INTEGER,REAL,COMPLEX,CHARACTER,LOGICAL,READ,FORMAT,IMPLICIT,PARAMETER,DATA,EQUIVALENCE,TYPE,PAUSE,CONTINUE,CYCLE,EXIT,IF,SELECT,DO,ALLOCATE,DEALLOCATE,WHERE,FORALL,SUBROUTIHNE,CALL,RETURN,FUNCTION,COMMON,BLOCK DATA,SAVE,INTERFACE,CONTAIN,MODULE,USE,PUBLIC,PRIVATE,ENTRY,OPEN,INQUIRE,CLOSE,NAMELIST,POINTER,NULLFY,REWIND,BACKSPACE,ENDFILE
+    },
+    basicstyle=\small\ttfamily,
+    numbers=left,
+    numberstyle=\small,
+    keywordstyle=\color{blue}\bfseries,
+    commentstyle=\color{dkgreen},
+    stringstyle=\color{dkpurple},
+    backgroundcolor=\color{white},
+    tabsize=2,
+    showspaces=false,
+    showstringspaces=false,
+    breaklines=true,
+    frame=trBL,
+}
+\CTEXsetup[format+={\raggedright}]{section}
+\setlength{\parindent}{2em}
+\geometry{
+    textwidth=138mm,
+    textheight=215mm,
+    left=27mm,
+    right=27mm,
+    top=25.4mm,
+    bottom=25.4mm,
+    headheight=2.17cm,
+    headsep=4mm,
+    footskip=12mm,
+    heightrounded,
+}
+\pagestyle{fancy}
+\lhead{\textsl{2021秋-计算物理A}}
+\chead{}
+\rhead{\textsl{PB19020634-于浩然}}
+\lfoot{}
+\cfoot{\thepage}
+\rfoot{}
+
+\begin{document}
+\begin{center}
+    {\LARGE\textbf{计算物理作业十三}}\\
+    \textrm{于浩然}~~~~~~\textrm{PB19020634}~~~~~~\textrm{2021.12.06}
+\end{center}
+\section{作业题目}
+
+用Metropolis-Hasting抽样方法计算积分：
+\begin{equation}
+    I = \int _0 ^{\infty} (x-\alpha \beta)^2 f(x) \textrm{d}x = \alpha \beta ^2
+\end{equation}
+\begin{equation}
+    f(x) = \frac{1}{\beta \Gamma(\alpha)} \left( \frac{x}{\beta}\right)^{\alpha
+    - 1} \exp (-x/\beta)
+\end{equation}
+
+设积分的权重函数分别为：$p(x) = f(x)$和$p(x)=(x-\alpha \beta)^2 f(x)$. 
+
+给定参数$\alpha, \beta$，并用不同的$\gamma$值，分别计算积分，讨论计算精度和效率.
+\section{算法简介}
+\subsection{Markov链}
+
+当满足条件$p_n(x_1,\cdots,x_n;t_1,\cdots,t_n) = p_n(x_1,\cdots,x_n;t_1+\Delta
+t,\cdots,t_n +\Delta
+t)$时，称随机过程是平稳的，即时间的起点选取没有影响，时，称随机过程是平稳的，即时间的起点选取没有影响，时间
+序列仅表示$x$取值的先后.
+
+我们称一个平稳的随机序列是Markov的，如果某一时刻$x$取值的条件几率独立于上一时刻之前
+所有$x$值的话. Markov链的极限分布与初始分布的选择无关，仅决定于转移概率.
+分布概率和转移概率分别用$p,W$来表示，达到平衡时有如下关系：
+\begin{equation}
+    p_i = \sum_j p_jW_{ji}
+\end{equation}
+
+\subsection{平稳态的主方程}
+
+平稳态主方程可以写为
+\begin{equation}
+    \frac{p(x)}{p(x')} = \frac{W(x'\rightarrow x)}{W(x\rightarrow x')}
+\end{equation}
+
+上式中已经考虑了到达平衡态与时间无关. 此即统计力学中的细致平衡解.
+将变量$x,x'$分别用下标$i,j$替换，则方程(4)写为
+\begin{equation}
+    p_iW_{ij}=p_jW_{ji}
+\end{equation}
+\subsection{Metropolis-Hasting抽样规则}
+
+Metropolis-Hasting抽样规则中，建议分布和接受几率均取非对称，接受几率根据
+待满足的几率分布$p$而定. 
+
+由细致平衡条件，
+\begin{equation}
+    \frac{p_j}{p_i} = \frac{W_{ij}}{W_{ji}} =
+    \frac{T_{ij}A_{ij}}{T_{ji}A_{ji}},\quad A_{ij}= \min \left{1,
+    \frac{p_jT_{ji}}{p_iT_{ij}\right}
+\end{equation}
+
+
+Metropolis提出(5)式的非对称解如下：设由$i\rightarrow
+j$的跃迁几率为$W_{ij}=T_{ij}A_{ij}$，其中$T_{ij}$是由$x_i$提出选择步进至$x_j$
+的几率，$A_{ij}$是接受该步提议的几率. 假定$T_{ij} = T_{ji}$，提议几率是对称的；
+而接受几率非对称，根据几率分布而定. 转移概率表示式为：
+\begin{equation}
+    W_{ij} = 
+    \begin{cases}
+        T_{ij}\qquad  &,p_j>p_i \\
+        T_{ij}(p_j/p_i)\quad  &,p_j<p_i
+    \end{cases}
+\end{equation}
+
+式中$i,j$不相同，$W_{ii}$须通过归一性求出. 
+
+下面给出具体抽样方法：假设已经产生了$n$个抽样点$x_1,x_2,\cdots,x_n$，可在$x_n$附近构造
+试探解$x_t = x_n + \delta \equiv x_n + (\xi -0.5)\Delta x$，其中$\Delta
+x$为给定的固定步长，$\xi \in (0,1)$是均匀分布的随机数，该点是否被选取决于比值
+$r=p(x_t)/p(x_n)$：
+\begin{enumerate}
+    \item[(1)] 若$r > 1$则直接选取，即$x_{n+1} = x_t$. 
+
+    \item[(2)] 否则产生[0,1]区间内均匀分布的随机数$\eta$，若$\eta < r$则选取；
+        即使得$x_{n+1} = x_t$(r < 1)的选取几率为$r$. 否则放弃，即$x_{n+1} =
+        x_n$.
+\end{enumerate}
+\section{编程实现}
+
+不妨取参数$\alpha = 3,\beta = 2$
+\section{计算结果}
+
+\section{结论}
+\end{document}

@@ -1,0 +1,6 @@
+PROGRAM MAIN
+    IMPLICIT NONE
+    REAL(KIND=8) :: x
+    CALL RANDOM_SEED(x)
+    print *, x
+END PROGRAM MAIN
